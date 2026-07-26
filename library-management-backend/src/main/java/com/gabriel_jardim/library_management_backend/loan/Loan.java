@@ -1,10 +1,10 @@
 package com.gabriel_jardim.library_management_backend.loan;
 
-import java.io.Reader;
 import java.time.LocalDate;
 
 import com.gabriel_jardim.library_management_backend.book_copy.BookCopy;
 import com.gabriel_jardim.library_management_backend.common.BaseEntity;
+import com.gabriel_jardim.library_management_backend.reader.Reader;
 import com.gabriel_jardim.library_management_backend.user.User;
 
 import jakarta.persistence.Column;

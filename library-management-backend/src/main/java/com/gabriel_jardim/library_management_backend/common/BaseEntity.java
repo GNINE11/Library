@@ -28,5 +28,5 @@ public abstract class BaseEntity {
 
     @UpdateTimestamp
     @Column(nullable = false)
-    private UpdateTimestamp updatedAt;
+    private LocalDateTime updatedAt;
 }
