@@ -29,6 +29,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/api/users/**", "/error").permitAll()
                 .requestMatchers("/api/readers/**", "/error").permitAll()
+                .requestMatchers("/api/authors/**", "/error").permitAll()
                 .anyRequest().authenticated()
             )
             .build();
