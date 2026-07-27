@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.gabriel_jardim.library_management_backend.common.exception.BusinessRuleException;
 import com.gabriel_jardim.library_management_backend.common.exception.ConflictException;
 import com.gabriel_jardim.library_management_backend.common.exception.ResourceNotFoundException;
+import com.gabriel_jardim.library_management_backend.loan.LoanRepository;
 import com.gabriel_jardim.library_management_backend.user.dto.ChangeActiveRequest;
 import com.gabriel_jardim.library_management_backend.user.dto.ChangePasswordRequest;
 import com.gabriel_jardim.library_management_backend.user.dto.CreateUserRequest;
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
     
     private final UserRepository userRepository;
+    private final LoanRepository loanRepository;
     private final PasswordEncoder passwordEncoder;
 
 
@@ -128,6 +130,11 @@ public class UserService {
         // TODO: usuário deve estar logado e ter role = admin
 
         User user = findEntityById(id);
+
+        if (!request.active() && loanRepository.existsByLoanedByIdAndReturnedByIsNull(id)) {
+            throw new BusinessRuleException("Não é possível desativar um usuário com empréstimos pendentes");
+        }
+
         user.setActive(request.active());
         return toResponse(user);
     }
