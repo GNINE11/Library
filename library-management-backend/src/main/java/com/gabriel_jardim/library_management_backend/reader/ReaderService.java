@@ -6,8 +6,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.gabriel_jardim.library_management_backend.common.exception.BusinessRuleException;
 import com.gabriel_jardim.library_management_backend.common.exception.ConflictException;
 import com.gabriel_jardim.library_management_backend.common.exception.ResourceNotFoundException;
+import com.gabriel_jardim.library_management_backend.loan.LoanRepository;
+import com.gabriel_jardim.library_management_backend.loan.LoanStatus;
 import com.gabriel_jardim.library_management_backend.reader.dto.ChangeActiveRequest;
 import com.gabriel_jardim.library_management_backend.reader.dto.ReaderRequest;
 import com.gabriel_jardim.library_management_backend.reader.dto.ReaderResponse;
@@ -19,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class ReaderService {
     
     private final ReaderRepository readerRepository;
+    private final LoanRepository loanRepository;
 
     private ReaderResponse toResponse(Reader reader) {
         return new ReaderResponse(
@@ -104,7 +108,13 @@ public class ReaderService {
     @Transactional
     public ReaderResponse changeActive(Long id, ChangeActiveRequest request) {
         // TODO: deve estar logado
+
         Reader reader = findEntityById(id);
+
+        if (!request.active() && loanRepository.existsByReaderIdAndStatus(id, LoanStatus.ACTIVE)) {
+            throw new BusinessRuleException("Não é possível excluir um leitor com empréstimos ativos.");
+        }
+
         reader.setActive(request.active());
         return toResponse(reader);
     }
