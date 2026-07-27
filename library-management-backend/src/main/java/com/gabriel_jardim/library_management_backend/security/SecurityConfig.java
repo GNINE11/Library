@@ -1,4 +1,4 @@
-package com.gabriel_jardim.library_management_backend.config;
+package com.gabriel_jardim.library_management_backend.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,10 +23,12 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // TODO: ajeitar dps de fazer a autenticação
         return http
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/api/users/**", "/error").permitAll()
+                .requestMatchers("/api/readers/**", "/error").permitAll()
                 .anyRequest().authenticated()
             )
             .build();
