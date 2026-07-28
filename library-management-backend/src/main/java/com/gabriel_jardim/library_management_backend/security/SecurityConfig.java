@@ -31,6 +31,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/readers/**", "/error").permitAll()
                 .requestMatchers("/api/authors/**", "/error").permitAll()
                 .requestMatchers("/api/categories/**", "/error").permitAll()
+                .requestMatchers("/api/books/**", "/error").permitAll()
                 .anyRequest().authenticated()
             )
             .build();
