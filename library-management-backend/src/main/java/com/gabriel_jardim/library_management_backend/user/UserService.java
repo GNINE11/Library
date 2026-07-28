@@ -16,6 +16,7 @@ import com.gabriel_jardim.library_management_backend.user.dto.ChangePasswordRequ
 import com.gabriel_jardim.library_management_backend.user.dto.CreateUserRequest;
 import com.gabriel_jardim.library_management_backend.user.dto.UpdateUserRequest;
 import com.gabriel_jardim.library_management_backend.user.dto.UserResponse;
+import com.gabriel_jardim.library_management_backend.user.mapper.UserMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,19 +27,10 @@ public class UserService {
     private final UserRepository userRepository;
     private final LoanRepository loanRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
 
-    private UserResponse toResponse(User user) {
-        return new UserResponse(
-            user.getId(),
-            user.getName(),
-            user.getEmail(),
-            user.getRole(),
-            user.getActive()
-        );
-    }
-
-
+    @Transactional(readOnly = true)
     private User findEntityById(Long id) {
         return userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado."));
@@ -62,7 +54,7 @@ public class UserService {
             .active(true)
             .build();
 
-        return toResponse(userRepository.save(user));
+        return userMapper.toResponse(userRepository.save(user));
     }
 
 
@@ -74,7 +66,7 @@ public class UserService {
         List<UserResponse> responses = new ArrayList<>();
 
         for (User user : users) {
-            UserResponse response = toResponse(user);
+            UserResponse response = userMapper.toResponse(user);
             responses.add(response);
         }
 
@@ -85,7 +77,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponse findById(Long id) {
         // TODO: usuário deve estar logado e ter role = admin
-        return toResponse(findEntityById(id));
+        return userMapper.toResponse(findEntityById(id));
     }
 
 
@@ -121,7 +113,7 @@ public class UserService {
         user.setEmail(request.email());
         user.setRole(request.role());
 
-        return toResponse(user);
+        return userMapper.toResponse(user);
     }
 
 
@@ -136,6 +128,6 @@ public class UserService {
         }
 
         user.setActive(request.active());
-        return toResponse(user);
+        return userMapper.toResponse(user);
     }
 }

@@ -14,6 +14,7 @@ import com.gabriel_jardim.library_management_backend.loan.LoanStatus;
 import com.gabriel_jardim.library_management_backend.reader.dto.ChangeActiveRequest;
 import com.gabriel_jardim.library_management_backend.reader.dto.ReaderRequest;
 import com.gabriel_jardim.library_management_backend.reader.dto.ReaderResponse;
+import com.gabriel_jardim.library_management_backend.reader.mapper.ReaderMapper;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,18 +24,9 @@ public class ReaderService {
     
     private final ReaderRepository readerRepository;
     private final LoanRepository loanRepository;
+    private final ReaderMapper readerMapper;
 
-    private ReaderResponse toResponse(Reader reader) {
-        return new ReaderResponse(
-            reader.getId(),
-            reader.getName(),
-            reader.getEmail(),
-            reader.getCpf(),
-            reader.getPhone(),
-            reader.getActive()
-        );
-    }
-
+    @Transactional(readOnly = true)
     private Reader findEntityById(Long id) {
         return readerRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Leitor não encontrado."));
@@ -58,7 +50,7 @@ public class ReaderService {
             .build();
 
 
-        return toResponse(readerRepository.save(reader));
+        return readerMapper.toResponse(readerRepository.save(reader));
     }
 
     @Transactional(readOnly = true)
@@ -70,7 +62,7 @@ public class ReaderService {
         List<ReaderResponse> responses = new ArrayList<>();
 
         for (Reader reader : readers) {
-            ReaderResponse response = toResponse(reader);
+            ReaderResponse response = readerMapper.toResponse(reader);
             responses.add(response);
         }
 
@@ -82,7 +74,7 @@ public class ReaderService {
     public ReaderResponse findById(Long id) {
 
         // TODO: deve estar logado
-        return toResponse(findEntityById(id));
+        return readerMapper.toResponse(findEntityById(id));
     }
 
 
@@ -101,7 +93,7 @@ public class ReaderService {
         reader.setEmail(request.email());
         reader.setPhone(request.phone());
 
-        return toResponse(reader);
+        return readerMapper.toResponse(reader);
     }
 
     
@@ -116,6 +108,6 @@ public class ReaderService {
         }
 
         reader.setActive(request.active());
-        return toResponse(reader);
+        return readerMapper.toResponse(reader);
     }
 }
