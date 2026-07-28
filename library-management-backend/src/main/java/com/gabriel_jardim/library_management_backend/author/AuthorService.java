@@ -1,13 +1,16 @@
 package com.gabriel_jardim.library_management_backend.author;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.gabriel_jardim.library_management_backend.author.dto.AuthorRequest;
 import com.gabriel_jardim.library_management_backend.author.dto.AuthorResponse;
+import com.gabriel_jardim.library_management_backend.author.mapper.AuthorMapper;
 import com.gabriel_jardim.library_management_backend.book.BookRepository;
 import com.gabriel_jardim.library_management_backend.common.exception.ConflictException;
 import com.gabriel_jardim.library_management_backend.common.exception.ResourceNotFoundException;
@@ -20,19 +23,24 @@ public class AuthorService {
     
     private final AuthorRepository authorRepository;
     private final BookRepository bookRepository;
+    private final AuthorMapper authorMapper;
 
-    
-    public AuthorResponse toResponse(Author author) {
-        return new AuthorResponse(
-            author.getId(),
-            author.getName()
-        );
-    }
-
-
+    @Transactional(readOnly = true)
     public Author findEntityById(Long id) {
         return authorRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Autor não encontrado."));
+    }
+
+
+    @Transactional(readOnly = true)
+    public Set<Author> findAllEntitiesById(Set<Long> ids) {
+        Set<Author> authors = new HashSet<>(authorRepository.findAllById(ids));
+        
+        if (authors.size() != ids.size()) {
+            throw new ResourceNotFoundException("Um ou mais autores não foram encontrados.");
+        }
+
+        return authors;
     }
 
 
@@ -48,7 +56,7 @@ public class AuthorService {
             .name(request.name())
             .build();
 
-        return toResponse(authorRepository.save(author));
+        return authorMapper.toResponse(authorRepository.save(author));
     }
 
 
@@ -61,7 +69,7 @@ public class AuthorService {
         List<AuthorResponse> responses = new ArrayList<>();
 
         for (Author author : authors) {
-            AuthorResponse response = toResponse(author);
+            AuthorResponse response = authorMapper.toResponse(author);
             responses.add(response);
         }
 
@@ -72,7 +80,7 @@ public class AuthorService {
     @Transactional(readOnly = true)
     public AuthorResponse findById(Long id) {
         // TODO: deve estar logado
-        return toResponse(findEntityById(id));
+        return authorMapper.toResponse(findEntityById(id));
     }
 
 
@@ -88,7 +96,7 @@ public class AuthorService {
 
         author.setName(request.name());
 
-        return toResponse(author);
+        return authorMapper.toResponse(author);
     }
 
 
@@ -98,7 +106,7 @@ public class AuthorService {
 
         Author author = findEntityById(id);
 
-        if (bookRepository.existsByAuthorId(id)) {
+        if (bookRepository.existsByAuthorsId(id)) {
             throw new ConflictException("Não é possivel excluir o autor, pois existem livros vinculados a ele.");
         }
 

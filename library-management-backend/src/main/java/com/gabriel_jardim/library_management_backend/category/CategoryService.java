@@ -1,7 +1,9 @@
 package com.gabriel_jardim.library_management_backend.category;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.gabriel_jardim.library_management_backend.book.BookRepository;
 import com.gabriel_jardim.library_management_backend.category.dto.CategoryRequest;
 import com.gabriel_jardim.library_management_backend.category.dto.CategoryResponse;
+import com.gabriel_jardim.library_management_backend.category.mapper.CategoryMapper;
 import com.gabriel_jardim.library_management_backend.common.exception.ConflictException;
 import com.gabriel_jardim.library_management_backend.common.exception.ResourceNotFoundException;
 
@@ -20,19 +23,24 @@ public class CategoryService {
     
     private final CategoryRepository categoryRepository;
     private final BookRepository bookRepository;
+    private final CategoryMapper categoryMapper;
 
 
-    public CategoryResponse toResponse(Category category) {
-        return new CategoryResponse(
-            category.getId(),
-            category.getName()
-        );
-    }
-
-
+    @Transactional(readOnly = true)
     public Category findEntityById(Long id) {
         return categoryRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada."));
+    }
+
+    @Transactional(readOnly = true)
+    public Set<Category> findAllEntitiesById(Set<Long> ids) {
+        Set<Category> categories = new HashSet<>(categoryRepository.findAllById(ids));
+
+        if (categories.size() != ids.size()) {
+            throw new ResourceNotFoundException("Uma ou mais categorias não foram encontradas.");
+        }
+
+        return categories;
     }
 
 
@@ -48,7 +56,7 @@ public class CategoryService {
             .name(request.name())
             .build();
 
-        return toResponse(categoryRepository.save(category));
+        return categoryMapper.toResponse(categoryRepository.save(category));
     }
 
 
@@ -59,7 +67,7 @@ public class CategoryService {
         List<CategoryResponse> responses = new ArrayList<>();
 
         for (Category category : categories) {
-            CategoryResponse response = toResponse(category);
+            CategoryResponse response = categoryMapper.toResponse(category);
             responses.add(response);
         }
 
@@ -70,7 +78,7 @@ public class CategoryService {
     @Transactional(readOnly = true)
     public CategoryResponse findById(Long id) {
         // TODO: deve estar logado
-        return toResponse(findEntityById(id));
+        return categoryMapper.toResponse(findEntityById(id));
     }
 
 
@@ -85,7 +93,7 @@ public class CategoryService {
 
         category.setName(request.name());
 
-        return toResponse(category);
+        return categoryMapper.toResponse(category);
     }
 
 
@@ -95,7 +103,7 @@ public class CategoryService {
 
         Category category = findEntityById(id);
 
-        if (bookRepository.existsByCategoryId(id)) {
+        if (bookRepository.existsByCategoriesId(id)) {
             throw new ConflictException("Não é possivel excluir a categoria, pois existem livros vinculados a ela.");
         }
 
